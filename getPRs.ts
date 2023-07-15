@@ -1,16 +1,9 @@
-import "dotenv/config";
+import { config } from './config';
 import axios from "axios";
-import { Collection, Db, Document, MongoClient } from "mongodb";
-
-const owner = process.env.OWNER as string;
-const repo = process.env.REPO as string;
-const accessToken = process.env.TOKEN as string;
-const mongoURL = process.env.MONGO_URL as string;
-const dbName = process.env.MONGO_DB as string;
-const collectionName = process.env.MONGO_COLLETION as string;
+import {  MongoClient } from "mongodb";
 
 const dbConnect = async () => {
-  const client = new MongoClient(mongoURL);
+  const client = new MongoClient(config.mongoURL);
   try {
     await client.connect();
     return client;
@@ -39,8 +32,8 @@ async function getPullRequestReviews(
 
 async function getLastSavedPullRequest(): Promise<number | undefined> {
   const client = await dbConnect();
-  const db = client.db(dbName);
-  const collection = db.collection(collectionName);
+  const db = client.db(config.dbName);
+  const collection = db.collection(config.collectionName);
 
   const lastPullRequest = await collection.findOne(
     {},
@@ -71,8 +64,8 @@ async function getAllPullRequests(
   };
 
   const client = await dbConnect();
-  const db = client.db(dbName);
-  const collection = db.collection(collectionName);
+  const db = client.db(config.dbName);
+  const collection = db.collection(config.collectionName);
 
   try {
     const lastSavedPR = await getLastSavedPullRequest();
@@ -118,6 +111,6 @@ async function getAllPullRequests(
   }
 }
 
-getAllPullRequests(owner, repo, accessToken).catch((error) => {
+getAllPullRequests(config.owner, config.repo, config.accessToken).catch((error) => {
   console.error("Error retrieving and saving pull requests:", error);
 });
