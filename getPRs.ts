@@ -9,8 +9,6 @@ const mongoURL = process.env.MONGO_URL as string;
 const dbName = process.env.MONGO_DB as string;
 const collectionName = process.env.MONGO_COLLETION as string;
 
-let db: Db;
-let collection: Collection<Document>;
 const dbConnect = async () => {
   const client = new MongoClient(mongoURL);
   try {
@@ -39,6 +37,21 @@ async function getPullRequestReviews(
   return response.data;
 }
 
+async function getLastSavedPullRequest(): Promise<number | undefined> {
+  const client = await dbConnect();
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
+
+  const lastPullRequest = await collection.findOne(
+    {},
+    { sort: { number: -1 } }
+  );
+  if (lastPullRequest) {
+    return lastPullRequest.number;
+  }
+  return undefined;
+}
+
 async function getAllPullRequests(
   owner: string,
   repo: string,
@@ -62,7 +75,9 @@ async function getAllPullRequests(
   const collection = db.collection(collectionName);
 
   try {
+    const lastSavedPR = await getLastSavedPullRequest();
     let page = 1;
+    let foundLastSavedPR = false;
 
     while (true) {
       params.page = page;
@@ -71,14 +86,22 @@ async function getAllPullRequests(
 
       for (const pr of response.data) {
         console.log(`Processing PR #${pr.number}`);
-        const reviews = await getPullRequestReviews(
-          owner,
-          repo,
-          pr.number,
-          accessToken
-        );
-        pr.reviews = reviews;
-        await collection.insertOne(pr);
+        if (lastSavedPR && pr.number === lastSavedPR) {
+          foundLastSavedPR = true;
+          continue;
+        }
+
+        if (!lastSavedPR || foundLastSavedPR) {
+          console.log(`Saving PR #${pr.number}`);
+          const reviews = await getPullRequestReviews(
+            owner,
+            repo,
+            pr.number,
+            accessToken
+          );
+          pr.reviews = reviews;
+          await collection.insertOne(pr);
+        }
       }
 
       if (!response.headers.link) break;
