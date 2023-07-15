@@ -76,7 +76,7 @@ async function getAllPullRequests(
 
   try {
     const lastSavedPR = await getLastSavedPullRequest();
-    let page = 1;
+    let page = lastSavedPR ? Math.floor(lastSavedPR/params.per_page)+1 : 1;
     let foundLastSavedPR = false;
 
     while (true) {
@@ -111,6 +111,8 @@ async function getAllPullRequests(
     }
 
     console.log("Pull requests saved to MongoDB.");
+    await client.close();
+    process.exit(0);
   } catch (error) {
     console.error("Error retrieving and saving pull requests:", error);
   }
