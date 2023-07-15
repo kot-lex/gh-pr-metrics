@@ -19,7 +19,7 @@ const dbConnect = async () => {
   } catch (error) {
     console.log("Cannot connect to Mongo");
     console.error(error);
-    throw error;
+    process.exit(1);
   }
 };
 
@@ -58,7 +58,7 @@ async function getAllPullRequests(
   const client = await dbConnect();
   const db = client.db(dbName);
   const collection = db.collection(collectionName);
-  
+
   try {
     let page = 1;
 
