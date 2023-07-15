@@ -51,6 +51,8 @@ async function getAllPullRequests(
   };
   const params = {
     state: "all",
+    sort: "created",
+    direction: "asc",
     per_page: 100, // Number of PRs per page, adjust as needed
     page: 0,
   };
