@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:PR": "ts-node getPRs.ts",
-    "start:RELEASES": "ts-node getReleases.ts"
+    "start:prs": "ts-node getPRs.ts",
+    "start:releases": "ts-node getReleases.ts",
+    "start:members": "ts-node getMembers.ts"
   },
   "keywords": [],
   "author": "",
